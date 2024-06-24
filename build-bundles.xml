@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="all" basedir="." name="Lucee">
+
+	<property name="src" location="${src}"/>
+
+	<macrodef name="echots">
+		<attribute name="message"/>
+		<sequential>
+			<local name="timestamp" />
+			<tstamp>
+				<format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
+			</tstamp>
+			<echo level="info" message="---------- ${timestamp} - @{message} ----------" />
+		</sequential>
+	</macrodef>
+
+<target name="all">
+
+	<echots message="Starting Lucee"/>
+	<script language="CFML">
+	<![CDATA[
+	systemOutput("---------- #DateTimeFormat(now(),'yyyy-mm-dd HH:nn:ss')# - Lucee Started ----------", true);
+
+	SystemOutput("source: #src#", true);
+	
+	try {
+
+// set a password for the admin
+	if(!server.lucee.singleContext) {
+		admin 
+			action="updatePassword"
+			type="web"
+			oldPassword=""
+			newPassword="webweb";
+	}
+	admin 
+		action="updatePassword"
+		type="server"
+		oldPassword=""
+		newPassword="webweb";
+
+
+
+/************************************
+			   LUCEE/ADMIN
+************************************/
+
+	
+	systemOutput("#DateTimeFormat(now(),'yyyy-mm-dd HH:nn:ss')# Generating archive #temp#/lucee-admin.lar ", true);
+	/*
+		write out a file into the admin with the built (i.e. current) lucee version
+		used to check that the the deployed lucee admin version matches the actual version being run
+	*/
+	versionFile = "#src#/version.cfm";
+	defaultVersionFile = fileRead( versionFile );
+	fileWrite( versionFile, '<cfset lucee_version="#server.lucee.version#">' );
+
+	// create "/lucee/admin" mapping
+	admin 
+		action="updateMapping"
+		type="web"
+		password="webweb"
+		virtual="/admin"
+		physical="#src#"
+		toplevel="true"
+		archive=""
+		primary="physical"
+		trusted="no";
+
+	// create an archive from the mapping
+	admin 
+		action="createArchive"
+		type="web"
+		password="webweb"
+		
+		file="#temp#/lucee-admin.lar"
+		virtual="/admin"
+		addCFMLFiles="true"
+		addNonCFMLFiles="true"
+		ignoreScopes="false";
+
+	// reset to default
+	fileWrite( versionFile, defaultVersionFile );
+
+	systemOutput( DateTimeFormat(now(),'yyyy-mm-dd HH:nn:ss') & " finished", true);
+	]]>
+  </script>
+</target>
+</project>

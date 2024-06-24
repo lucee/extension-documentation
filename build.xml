@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="clean" basedir="." name="documentation-extension">
+	<description>
+        Build the Lucee Documentation Extension
+    </description>
+    <!-- set global properties for this build -->
+  
+  <property file="build.properties"/>
+
+  <property name="src" location="source"/>
+  <property name="srcImg" location="source/images"/>
+  <property name="srcCFML" location="source/cfml"/>
+  <property name="temp" location="temp"/>
+  <property name="build" location="build"/>
+  <property name="dist"  location="target"/>
+  <property name="javaVersionCoreDefault" value="11"/>
+  <property name="javaVersionAgent" value="11"/>
+  <property name="javaVersionLoader" value="11"/>
+    <property name="runtime_classpath" value="${java.class.path}"/>
+  <tstamp>
+      <format property="NOW" pattern="yyyy/MM/dd HH:mm:ss z" locale="en,GB"/>
+  </tstamp>
+  <target name="init">
+    <!-- Create the time stamp -->
+    <tstamp/>
+    
+    <delete dir="${temp}"/>
+    <delete dir="${dist}"/>
+
+    <!-- Create the build directory structure used by compile -->
+    <mkdir dir="${temp}"/>
+    <mkdir dir="${build}"/>
+    <mkdir dir="${dist}/"/>
+
+
+  </target>
+
+
+  <target name="build_bundle" depends="init">
+    <!-- first we copy the jars in place otherwise, Lucee downloads them
+    <echots message="copy bundles in place"/>
+    <addBundles
+      bundles="${dependencies}"
+      target="${temp}/archive/base/lucee-server/bundles"
+      coremanifest="${coreManifest}"/>  -->
+
+    <!-- no we copy the extension in place otherwise, Lucee downloads them as well
+    <echots message="copy extensions in place"/>
+    <copyExtensions
+      source="${cache}"
+      target="${temp}/archive/base/lucee-server/context/extensions/available"
+      extensions="${reqExt.data}">
+    </copyExtensions>  -->
+
+    <echo message="building Lucee admin.lar"/>
+    <java 
+      classname="org.apache.tools.ant.launch.Launcher" 
+      dir="${src}" fork="true" failonerror="true" >
+      <classpath path="${java.class.path}">
+          <pathelement location="/Users/mic/Projects/Extensions/Hibernate/source/java/libs/lucee.jar"/>
+          <pathelement path="${runtime_classpath}"/>
+      </classpath>
+
+      <arg value="-f"/>
+      <arg value="build-bundles.xml"/>
+
+      <!---
+      <jvmarg value="-XX:StartFlightRecording=disk=true,dumponexit=true,filename=${temp}/../lucee-compile.jfr,maxsize=1024m,maxage=1d,settings=profile,path-to-gc-roots=true"/>
+      -->
+
+      <jvmarg value="-Dsrc=${srcCFML}"/>
+      <jvmarg value="-Dtemp=${temp}/archive"/>
+      <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
+      <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
+      <jvmarg value="-Dlucee.enable.dialect=true"/>
+      <jvmarg value="-Dlucee.extensions.install=true"/>
+      <jvmarg value="-Dlucee.full.null.support=false"/>
+      <!-- this checks to see that all the required bundles are provided, so that none are missing -->
+      <jvmarg value="-Dlucee.enable.bundle.download=false"/><!-- we do always download to make sure this is available -->
+      <jvmarg value="-Dlucee.cli.printExceptions=true"/>
+      <jvmarg value="-Dlucee.ssl.checkserveridentity=false"/>
+      <jvmarg value="-Dlucee.compiler.java.version=${javaVersionCoreDefault}"/>
+
+    </java>
+    <outputTrimmedString str="${exc}"/>
+</target>
+
+
+
+
+
+
+  <target name="dist" depends="init"
+        description="generate the distribution" >
+    
+
+    <!-- copy the logo -->
+    <copy todir="${dist}/extension/META-INF">
+      <fileset dir="${srcImg}/">
+        <include name="logo.png"/>
+      </fileset>
+    </copy>
+
+    <!-- add Manifest -->
+    <echo file="${dist}/extension/META-INF/MANIFEST.MF">Manifest-Version: 1.0
+Built-Date: ${NOW}
+version: "${bundleversion}"
+id: "${id}"
+name: "${label}"
+description: "${description}"
+lucee-core-version: "${luceeCoreVersion}"
+release-type: ${releaseType}
+start-bundles: false
+trial: false
+mapping: "[{'virtual':'/lucee/doc','physical':'','archive':'{lucee-config}/context/lucee-doc.lar','primary':'archive ','inspect':'once ','toplevel':'true','readonly':'true','listenermode':'curr2root','listenertype':'modern'}]"
+</echo>
+
+
+    <!-- Zip everything  -->
+     <zip destfile="${dist}/${filename}-${bundleversion}.lex">
+        <zipfileset dir="${dist}/extension"/>
+    </zip>
+		
+  </target>
+
+
+
+
+
+	<target name="clean"  depends="dist" description="clean up" >
+		<delete dir="${dist}/extension"/>
+    <delete dir="${build}"/>
+    <delete dir="${temp}"/>
+	</target>
+
+</project>
