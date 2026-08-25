@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.lucee</groupId>
     <artifactId>documentation-extension</artifactId>
-    <version>1.0.0.7</version>
+    <version>1.0.0.8</version>
     <packaging>pom</packaging>
     <name>Documentation Extension</name>
 
@@ -14,7 +14,7 @@
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <id>D46D49C3-EB85-8D97-30BEC2F38561E985</id>
-        <image>https://raw.githubusercontent.com/lucee/extension-documentation/master/source/images/logo.png</image>
+        <image>./${project.artifactId}-${project.version}-logo.png</image>
         <buildDate>${maven.build.timestamp}</buildDate>
         <bundlename>org.lucee.documentation.extension</bundlename>
         <luceeCoreVersion>5.0.0.050</luceeCoreVersion>
@@ -192,6 +192,11 @@
                                 <artifact>
                                     <file>${project.build.directory}/${project.artifactId}-${project.version}.lex</file>
                                     <type>lex</type>
+                                </artifact>
+                                <artifact>
+                                    <file>${project.basedir}/source/images/logo.png</file>
+                                    <type>png</type>
+                                    <classifier>logo</classifier>
                                 </artifact>
                             </artifacts>
                         </configuration>
